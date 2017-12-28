@@ -1,7 +1,7 @@
 # Image Size
-HEIGHT = 46 # sky is removed .. in train.py
-WIDTH = 160
-CHANNELS = 3
+HEIGHT = 180 # sky is removed .. in train.py
+WIDTH = 240
+CHANNELS = 1
 # Cropping factor
 CROP_TOP = 30
 CROP_BOTTOM = 5

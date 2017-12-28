@@ -4,8 +4,11 @@ from keras.regularizers import l2
 from keras.layers import Conv2D
 from keras.layers import merge
 from keras.layers import Input, Convolution2D, Dense, Dropout, Flatten, Lambda
+
+from keras.layers import Cropping2D, SpatialDropout2D
+
 from keras.layers import TimeDistributed, GRU, Embedding
-from keras.models import Model
+from keras.models import Model, Sequential
 from keras.objectives import mean_squared_error
 from FLAGS import *
 import numpy as np
@@ -18,9 +21,10 @@ class DatNet(object):
                  res_layer_params=(3, 16, 3),
                  init='glorot_normal', reg=0.0, use_shortcuts=True):
 
-        self.vision_model = self.build(input_shape=input_shape, nb_classes=nb_classes,
-                                        layer1_params=layer1_params, res_layer_params=res_layer_params,
-                                        init=init, reg=reg, use_shortcuts=use_shortcuts)
+        # self.vision_model = self.build(input_shape=input_shape, nb_classes=nb_classes,
+        #                                 layer1_params=layer1_params, res_layer_params=res_layer_params,
+        #                                 init=init, reg=reg, use_shortcuts=use_shortcuts)
+        self.nvidia_model = self.build_nvidia(input_shape=input_shape)
         # self.RNN  = self.build_rnn()
 
     def train_rnn(self, batch_generator=None, epochs=2, augmentation_scale=3):
@@ -145,7 +149,7 @@ class DatNet(object):
 
         #  INPUT LAYERS
         # ###################################################################################
-        frame = Input(shape=(HEIGHT, WIDTH, CHANNELS), name='cifar')
+        frame = Input(shape=(HEIGHT, WIDTH, CHANNELS), name='cifar1')
 
         # VISION MODEL - USING CNN
         # ####################################################################################
@@ -197,6 +201,44 @@ class DatNet(object):
         model = Model(inputs=frame_sequence, outputs=net)
 
         return model
+
+    def build_nvidia(self,input_shape=(HEIGHT, WIDTH, CHANNELS),crop=30):
+
+        model = Sequential()
+        #model.add(img_input)
+        # Normalize input planes
+        model.add(Lambda(lambda x: x/255-0.5, input_shape=input_shape))
+        # Cropping image for focus only on the road
+        model.add(Cropping2D(cropping=((crop,0),(0,0))))
+        # Conv 1 layer
+        model.add(Convolution2D(24, (5, 5), border_mode="same", subsample=(2,2), activation="relu"))
+        # Conv 2 layer
+        model.add(Convolution2D(36, (5, 5), border_mode="same", subsample=(2,2), activation="relu"))
+        model.add(SpatialDropout2D(0.2))
+        # Conv 3 layer
+        model.add(Convolution2D(48, (5, 5), border_mode="valid", subsample=(2,2), activation="relu"))
+        model.add(SpatialDropout2D(0.2))
+        # Conv 4 layer
+        model.add(Convolution2D(64, (3, 3), border_mode="valid", activation="relu"))
+        model.add(SpatialDropout2D(0.2))
+        # Conv 5 layer
+        model.add(Convolution2D(64, (3, 3), border_mode="valid", activation="relu"))
+        model.add(SpatialDropout2D(0.2))
+
+        model.add(Flatten())
+        # Fully Connect layer 1
+        model.add(Dense(100, activation='relu'))
+        # Fully Connect layer 2
+        model.add(Dense(50, activation='relu'))
+        # Fully Connect layer 3
+        model.add(Dense(10, activation='relu'))
+        model.add(Dropout(.5))
+        # Output
+        model.add(Dense(1))
+        # lr=0.001
+        #model.compile(optimizer=Adam(lr=0.0001), loss='mse')
+        return model
+
 
 def mse_steer_angle(y_true, y_pred):
     return mean_squared_error(y_true[0], y_pred[0])

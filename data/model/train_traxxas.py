@@ -24,8 +24,8 @@ DATA_PATH = os.path.join(os.environ["HOME"],"share", "dataset")
 # images_2 = data2['features']
 # measurements_2 = data2['labels']
 
-train_path = os.path.join(DATA_PATH, "recording1_remap.h5")
-test_path = os.path.join(DATA_PATH, "Testing_remap.h5")
+train_path = os.path.join(DATA_PATH, "road_blacktop_sand-smooth.h5")
+test_path = os.path.join(DATA_PATH, "road_wood_lightchange-smooth.h5")
 
 train_ds = h5py.File(train_path, "r")
 test_ds = h5py.File(test_path, "r")
@@ -43,18 +43,18 @@ ds_y = ds_y[..., np.newaxis]
 # images = np.concatenate((images, images_2))
 # measurements = np.concatenate((measurements, measurements_2))
 
-ds_x_new = np.zeros((ds_x.shape[0], 48, 64, 1))
-for frame_idx in range(ds_x.shape[0]):
-    ds_x_new[frame_idx, :, :, 0] = imresize(
-        ds_x[frame_idx, :, :, 0], (48, 64))
-ds_x = ds_x_new
+# ds_x_new = np.zeros((ds_x.shape[0], 48, 64, 1))
+# for frame_idx in range(ds_x.shape[0]):
+#     ds_x_new[frame_idx, :, :, 0] = imresize(
+#         ds_x[frame_idx, :, :, 0], (48, 64))
+# ds_x = ds_x_new
 
 print (ds_x.shape)
 
 # Crop the top of the images - the sky
 # images = images[:, 29:75, ...]
 
-plt.imshow(ds_x[10])
+plt.imshow(ds_x[10,:,:,0])
 plt.show()
 # Get only a portion of the dataset
 # images = images[:int(len(images)/1)]
@@ -67,43 +67,43 @@ print("Data loaded : Input {} // Measurement {}".format(np.shape(images), np.sha
 # #############################
 # ## DATA AUGMENTATION ########
 ###############################
-from image_processor import random_transform
-augmented_images = []
-augmented_measurements = []
-for image, measurement in zip(images, measurements):
-    flipped_image = cv2.flip(image, 1)
-    augmented_images.append(flipped_image)
-    flipped_angle = measurement[0] * -1.0
-    augmented_measurements.append((flipped_angle, measurement[1], measurement[2]))
-    # #
-    rand_image, _ = random_transform(image)
-    augmented_images.append(rand_image)
-    augmented_measurements.append(measurement)
+# from image_processor import random_transform
+# augmented_images = []
+# augmented_measurements = []
+# for image, measurement in zip(images, measurements):
+#     flipped_image = cv2.flip(image, 1)
+#     augmented_images.append(flipped_image)
+#     flipped_angle = measurement[0] * -1.0
+#     augmented_measurements.append((flipped_angle, measurement[1], measurement[2]))
+#     # #
+#     rand_image, _ = random_transform(image)
+#     augmented_images.append(rand_image)
+#     augmented_measurements.append(measurement)
 
 # # TODO:
 # How to divide this into frame block for RNN
-print(np.shape(images))
-print(np.shape(augmented_images))
-images = np.concatenate((images, augmented_images))
-measurements = np.concatenate((measurements, augmented_measurements))
+print(measurements[1:10,:])
+# print(np.shape(augmented_images))
+# images = np.concatenate((images, augmented_images))
+# measurements = np.concatenate((measurements, augmented_measurements))
 
 # Build new model
 model = DatNet(input_shape=(HEIGHT, WIDTH, CHANNELS), res_layer_params=(3, 32, 4))
 
-model.vision_model.load_weights('./model/cnn.h5', by_name=True)
-print("Pre-trained model loaded...")
+# model.vision_model.load_weights('cnn.h5', by_name=True)
+# print("Pre-trained model loaded...")
 
-model.vision_model.summary()
-model.vision_model.compile(optimizer=Adam(lr=0.00002), loss=[mse_steer_angle])
+model.nvidia_model.summary()
+model.nvidia_model.compile(optimizer=Adam(lr=0.00002), loss=[mse_steer_angle])
 
-checkpoint = ModelCheckpoint('./model/checkpoints/weights.{epoch:02d}-{val_loss:.3f}.h5', save_weights_only=True)
-model.vision_model.fit(images, measurements, batch_size=128, epochs=1, callbacks=[checkpoint],
+checkpoint = ModelCheckpoint('./checkpoints/weights.{epoch:02d}-{val_loss:.3f}.h5', save_weights_only=True)
+model.nvidia_model.fit(images, measurements, batch_size=128, epochs=3, callbacks=[checkpoint],
                        validation_split=0.3, shuffle=True)
 
 # Save model
-json_string = model.vision_model.to_json()
-with open('./model/cnn.json', 'w') as outfile:
+json_string = model.nvidia_model.to_json()
+with open('cnn_m_nv.json', 'w') as outfile:
     outfile.write(json_string)
-model.vision_model.save_weights('./model/cnn.h5')
+model.nvidia_model.save_weights('./cnn_m_nv.h5')
 print('Model saved')
 # # Post-process angle

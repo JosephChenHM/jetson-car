@@ -82,7 +82,7 @@ class DatNet(object):
         bn_name = 'bn' + str(stage)
         conv_name = 'conv' + str(stage)
         relu_name = 'relu' + str(stage)
-        merge_name = '+' + str(stage)
+        merge_name = 'add' + str(stage)
 
         # batch-norm-relu-conv, from nb_in_filters to nb_bottleneck_filters via 1x1 conv
         if stage > 1:  # first activation is just after conv1
