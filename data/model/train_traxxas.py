@@ -24,8 +24,8 @@ DATA_PATH = os.path.join(os.environ["HOME"],"share", "dataset")
 # images_2 = data2['features']
 # measurements_2 = data2['labels']
 
-train_path = os.path.join(DATA_PATH, "road_blacktop_sand-smooth.h5")
-test_path = os.path.join(DATA_PATH, "road_wood_lightchange-smooth.h5")
+train_path = os.path.join(DATA_PATH, "ccw_foyer_record_12_12_17-smooth.h5")
+test_path = os.path.join(DATA_PATH, "cw_foyer_record_12_12_17-smooth.h5")
 
 train_ds = h5py.File(train_path, "r")
 test_ds = h5py.File(test_path, "r")
@@ -39,7 +39,8 @@ test_y = test_ds["command/steering"][()].astype("float32")
 ds_x = np.concatenate((train_x, test_x), axis=0)
 ds_y = np.concatenate((train_y, test_y), axis=0)
 ds_y = ds_y[..., np.newaxis]
-
+ds_y -= 1500
+ds_y /= 500
 # images = np.concatenate((images, images_2))
 # measurements = np.concatenate((measurements, measurements_2))
 
@@ -50,7 +51,7 @@ ds_y = ds_y[..., np.newaxis]
 # ds_x = ds_x_new
 
 print (ds_x.shape)
-
+print ds_y[0:30,:]
 # Crop the top of the images - the sky
 # images = images[:, 29:75, ...]
 
@@ -97,13 +98,13 @@ model.nvidia_model.summary()
 model.nvidia_model.compile(optimizer=Adam(lr=0.00002), loss=[mse_steer_angle])
 
 checkpoint = ModelCheckpoint('./checkpoints/weights.{epoch:02d}-{val_loss:.3f}.h5', save_weights_only=True)
-model.nvidia_model.fit(images, measurements, batch_size=128, epochs=3, callbacks=[checkpoint],
+model.nvidia_model.fit(images, measurements, batch_size=32, epochs=30, callbacks=[checkpoint],
                        validation_split=0.3, shuffle=True)
 
 # Save model
 json_string = model.nvidia_model.to_json()
-with open('cnn_m_nv.json', 'w') as outfile:
+with open('cnn_m_nv_py2_cw.json', 'w') as outfile:
     outfile.write(json_string)
-model.nvidia_model.save_weights('./cnn_m_nv.h5')
+model.nvidia_model.save_weights('./cnn_m_nv_py2_cw.h5')
 print('Model saved')
 # # Post-process angle

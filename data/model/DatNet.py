@@ -21,9 +21,9 @@ class DatNet(object):
                  res_layer_params=(3, 16, 3),
                  init='glorot_normal', reg=0.0, use_shortcuts=True):
 
-        # self.vision_model = self.build(input_shape=input_shape, nb_classes=nb_classes,
-        #                                 layer1_params=layer1_params, res_layer_params=res_layer_params,
-        #                                 init=init, reg=reg, use_shortcuts=use_shortcuts)
+        self.vision_model = self.build(input_shape=input_shape, nb_classes=nb_classes,
+                                        layer1_params=layer1_params, res_layer_params=res_layer_params,
+                                        init=init, reg=reg, use_shortcuts=use_shortcuts)
         self.nvidia_model = self.build_nvidia(input_shape=input_shape)
         # self.RNN  = self.build_rnn()
 
