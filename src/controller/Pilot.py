@@ -24,8 +24,8 @@ from cv_bridge import CvBridge, CvBridgeError
 
 # ROS message
 from sensor_msgs.msg import Joy, Image  # we could combine Image into CarController
-from rc_car_msgs.msg import CarController
-
+# from rc_car_msgs.msg import CarController
+from rally_msgs.msg import Pwm
 
 steering = 0.0
 throttle = 0.0
@@ -46,8 +46,8 @@ class Pilot:
         # Load Keras Model - Publish topic - CarController
         rospy.init_node("pilot_steering_model", anonymous=True)
         self.joy = rospy.Subscriber('joy', Joy, self.joy_callback)
-        self.control_signal = rospy.Publisher('/car_controller', CarController, queue_size=1)
-        self.camera = rospy.Subscriber('/camera/rgb/image_rect_color', Image, self.callback, queue_size=1)
+        self.control_signal = rospy.Publisher('/drive_pwm', Pwm, queue_size=1)
+        self.camera = rospy.Subscriber('/dvs/image_raw', Image, self.callback, queue_size=1)
 
         # Lock which waiting for Keras model to make prediction
         rospy.Timer(rospy.Duration(0.005), self.send_control)
@@ -60,7 +60,7 @@ class Pilot:
         global steering, throttle
         if self.lock.acquire(True):
             self.image = cv_bridge.imgmsg_to_cv2(camera)
-	    self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+	    # self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
             if self.model is None:
                 self.model = self.get_model()
             steering, _ = self.predict(self.model, self.image)
@@ -74,12 +74,12 @@ class Pilot:
         if self.completed_cycle is False:
             return
         # Publish a rc_car_msgs
-        msg = CarController()
+        msg = Pwm()
 #        msg.header.stamp = rospy.Time.now()
-        msg.steer = steering
-        msg.throttle = throttle
+        msg.steer = steering*500+1500
+        msg.throttle = throttle*500+1500
         self.control_signal.publish(msg)
-        print "Steer: {:5.4f} Throttle {:5.4f}".format(steering, throttle)
+        print "Steer: {:5.4f} Throttle {:5.4f}".format(steering*500+1500, throttle*500+1500)
         self.completed_cycle = False
 
 
