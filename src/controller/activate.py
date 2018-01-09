@@ -23,10 +23,10 @@ def drive(model, image):
     if image is None:
         return
     # Resize to fit the model
-    image = cv2.resize(image, (160, 80), interpolation=cv2.INTER_AREA)
+    # image = cv2.resize(image, (160, 80), interpolation=cv2.INTER_AREA)
     # Crop the sky
-    image = image[29:75, :]
-    prediction = model.predict(image[None, :, :, :], batch_size=1)
+    # image = image[29:75, :]
+    prediction = model.predict(image[None, :, :, None], batch_size=1)
     steering_angle = prediction[0][0]
     throttle = 0.1
 
