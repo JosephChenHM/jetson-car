@@ -76,7 +76,7 @@ class Pilot:
         # Publish a rc_car_msgs
         msg = Pwm()
 #        msg.header.stamp = rospy.Time.now()
-        msg.steer = steering*500+1500
+        msg.steering = steering*500+1500
         msg.throttle = throttle*500+1500
         self.control_signal.publish(msg)
         print "Steer: {:5.4f} Throttle {:5.4f}".format(steering*500+1500, throttle*500+1500)
