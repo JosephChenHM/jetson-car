@@ -4,6 +4,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Joy.h>      // Joy msg for Jetson JoyStick to subscribe signals from joystick.
 #include <rc_car_msgs/CarController.h> // Tesing simpler message
+#include <rally_msgs/Pwm.h>
 
 
 /*
@@ -34,21 +35,21 @@ class JoyStick{
     private:
         enum {OFF, ON};
         ros::NodeHandle node_handle_;
-	    ros::Publisher  car_pub_;
+        ros::Publisher  car_pub_;
         ros::Subscriber joy_sub_;
         int             linear_;
         int             angular_;
         double          l_scale_;
         double          a_scale_;
         float           previous[2];
-	
+    
         bool            emergency_brake;
-	    bool            running_autonomous;
-	    bool		    is_recording;
+        bool            running_autonomous;
+        bool            is_recording;
 
-        void 		    joyCallback(const sensor_msgs::Joy::ConstPtr& joy);
-	    void 		    _manual_mode(const sensor_msgs::Joy::ConstPtr& joy);
-        void 		    _autonomous_mode(const sensor_msgs::Joy::ConstPtr& joy);
+        void            joyCallback(const sensor_msgs::Joy::ConstPtr& joy);
+        void            _manual_mode(const sensor_msgs::Joy::ConstPtr& joy);
+        void            _autonomous_mode(const sensor_msgs::Joy::ConstPtr& joy);
 
 };
 
@@ -71,13 +72,15 @@ JoyStick::JoyStick():
     node_handle_.param("scale_linear", l_scale_, l_scale_);
 
     // Setup Ros Publisher and Subscriber
-    car_pub_ = node_handle_.advertise<rc_car_msgs::CarController>("car_controller", 1, true);
+    car_pub_ = node_handle_.advertise<rally_msgs::Pwm>("drive_pwm", 1, true);
     joy_sub_ = node_handle_.subscribe<sensor_msgs::Joy>("joy", 10, &JoyStick::joyCallback, this);
 }
 
 void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr &joy)
 {
     // Determine if car is in manual or autonomous mode
+    ROS_INFO("joyCallback");
+    //std::cout << "joyCallback" << std::endl;
     if (joy->axes[7] == ON){
         if(running_autonomous==OFF)
             running_autonomous=ON;
@@ -98,25 +101,25 @@ void JoyStick::_autonomous_mode(const sensor_msgs::Joy::ConstPtr &joy){
 }
 
 void JoyStick::_manual_mode(const sensor_msgs::Joy::ConstPtr& joy){
-    rc_car_msgs::CarController car;
-
+    rally_msgs::Pwm car;
+    //std::cout << "JoyStick::_manual_mode" << std::endl;
     // EMERGENCY BRAKE
     if (joy->buttons[4] == ON || joy->buttons[5] == ON){
-	    emergency_brake = ON;
-	    car.throttle = 0;
-	    car.steer    = 0;
+        emergency_brake = ON;
+        car.throttle = 0;
+        car.steering    = 0;
     }
     // START THE CAR
     if (joy->buttons[START_BUTTON] == ON){
-	    emergency_brake = OFF;
+        emergency_brake = OFF;
     }
     if (emergency_brake == OFF){
-    	car.steer    = a_scale_*joy->axes[angular_];
-    	car.throttle = l_scale_*joy->axes[linear_];
+        car.steering    = a_scale_*joy->axes[angular_];
+        car.throttle = l_scale_*joy->axes[linear_];
     }
 
     car_pub_.publish(car);
-    previous[0] =  car.steer;
+    previous[0] =  car.steering;
     previous[1] =  car.throttle;
 }
 
@@ -124,6 +127,7 @@ int main(int argc, char** argv)
 {
     ros::init(argc, argv, "jetson_teleop");
     JoyStick jetson_teleop;
-    std::cout << "Jetson Joystick Node activated" << std::endl;
+    ROS_INFO("Jetson Joystick Node activated");
+    //std::cout << "Jetson Joystick Node activated" << std::endl;
     ros::spin();
 }
