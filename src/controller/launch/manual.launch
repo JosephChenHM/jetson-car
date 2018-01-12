@@ -3,6 +3,9 @@
  <!-- Set Parameter Sever -->
  <rosparam  file="$(find controller)/cfg/paths.yaml" command="load"/>
 
+  <!-- camera driver -->
+  <node name="davis_ros_driver" pkg="davis_ros_driver" type="davis_ros_driver" />
+
 
  <!-- Serial Arduino Node -->
   <node pkg="rosserial_python" type="serial_node.py" name="serial_node">
@@ -16,10 +19,6 @@
     <param name="deadzone" value="0.12" />
   </node>
  
- <!-- Recorder Node -->
-  <node pkg="record_data" name="recorder" type="start.py" output="screen"> 
-  </node>
-
  <!-- Pilot Node -->
   <node pkg="controller" name="autonomous_controller" type="controller.py" output="screen"/>
 
