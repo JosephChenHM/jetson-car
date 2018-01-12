@@ -1,3 +1,3 @@
 # PATHS ARE USED in each nodes, will be used via launch file under `rosparam load iyaml_file`
-model_path: "/home/joseph/git/jetson-car/model/cnn_m_nv_py2_cw.json"
+model_path: "cnn_m_nv_py2_cw.json"
 
