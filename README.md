@@ -1,5 +1,46 @@
 Jetson Autonomous RC Car
 ========================
+
+## Setup step
+
+0. Clone the repo to some where in your system.
+
+1. Install catkin tools
+
+```
+$ sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list'
+$ wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
+$ sudo apt-get update
+$ sudo apt-get install python-catkin-tools
+```
+
+The catkin tools will be installed with ROS distribution.
+
+2. Configure catkin tools
+
+```
+$ cd $HOME/catkin_ws
+$ catkin init
+$ catkin clean  # optional if there is no other packages
+$ catkin config --merge-devel
+```
+
+3. Install joystick driver from ROS
+
+```
+$ sudo apt-get install ros-kinetic-rosserial
+$ sudo apt-get install ros-kinetic-joy
+```
+
+4. Create a symbolic link between repository to the catkin space
+
+```
+ln -s /path/to/this/repo/ $HOME/catkin_ws/src
+```
+
+
+## Old log
+
 Autonomous RC Race Car using ROS and Keras/TensorFlow. Inspired by JetsonHacks
 
 <p align="center">
