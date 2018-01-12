@@ -38,6 +38,20 @@ $ sudo apt-get install ros-kinetic-joy
 ln -s /path/to/this/repo/ $HOME/catkin_ws/src
 ```
 
+## Control command
+
++ `Y`: take control back from hand held controller
++ `B`: firmware level emergency brake
++ `A`: start recording
++ `X`: stop recording
++ `LB`: joystick level emergency brake
++ `LT`: start joystick manual control
++ `RB`: stop autonomous control
++ `RT`: start autonomous control
+
++ Left analog mini-stick: steering (rotate left and right)
++ Right analog mini-stick: throttle (rotate up and down)
+
 
 ## Old log
 
