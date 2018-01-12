@@ -6,13 +6,15 @@ This script is used to start/stop record rosbag using Joy ROS message
 from __future__ import print_function
 import os
 import rospy
+import std_msgs.msg
 import subprocess
 import signal
 from sensor_msgs.msg import Joy
 
 
 def callback(joy):
-    global autonomous, is_recording, activate_pilot, activate_record
+    global autonomous, is_recording, activate_pilot, \
+        activate_record
 
     # RIGHT TOP - BIG BUTTON - RT
     if joy.buttons[7] == 1:
@@ -75,6 +77,19 @@ def callback(joy):
             print("Nothing to terminated.")
             print('-'*30, "\n")
 
+    # resume control from hand controller - Y
+    if joy.buttons[3] == 1:
+        resume_control.publish(1)
+        print("\n\n", '-'*30)
+        print("Joystick in control")
+        print('-'*30, "\n")
+
+    if joy.buttons[2] == 1:
+        firmware_stop.publish(1)
+        print("\n\n", '-'*30)
+        print("Firmware level emergency stop")
+        print('-'*30, "\n")
+
 
 def terminate_process_and_children(p):
     ps_command = subprocess.Popen(
@@ -97,4 +112,8 @@ def start():
 if __name__ == "__main__":
     is_recording = False
     autonomous = False
+    resume_control = rospy.Publisher(
+        "/resumeAuto", std_msgs.msg.Bool, queue_size=1)
+    firmware_stop = rospy.Publisher(
+        "/eStop", std_msgs.msg.Bool, queue_size=1)
     start()
