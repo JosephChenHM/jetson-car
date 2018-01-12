@@ -29,5 +29,5 @@
   <param name="axis_linear" value="3" type="int"/>
   <param name="axis_angular" value="0" type="int"/>
 
-  <node pkg="controller" type="controller_node" name="jetson_teleop"/>
+  <node pkg="controller" type="controller_node" name="jetson_teleop" output="screen"/>
 </launch>

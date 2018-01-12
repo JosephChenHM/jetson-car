@@ -79,8 +79,6 @@ JoyStick::JoyStick():
 void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr &joy)
 {
     // Determine if car is in manual or autonomous mode
-    ROS_INFO("joyCallback");
-    //std::cout << "joyCallback" << std::endl;
     if (joy->axes[7] == ON){
         if(running_autonomous==OFF)
             running_autonomous=ON;
@@ -102,19 +100,20 @@ void JoyStick::_autonomous_mode(const sensor_msgs::Joy::ConstPtr &joy){
 
 void JoyStick::_manual_mode(const sensor_msgs::Joy::ConstPtr& joy){
     rally_msgs::Pwm car;
-    //std::cout << "JoyStick::_manual_mode" << std::endl;
     // EMERGENCY BRAKE
     if (joy->buttons[4] == ON || joy->buttons[5] == ON){
         emergency_brake = ON;
         car.throttle = 0;
-        car.steering    = 0;
+        car.steering = 0;
+        ROS_INFO("Emergency Brake");
     }
     // START THE CAR
     if (joy->buttons[START_BUTTON] == ON){
         emergency_brake = OFF;
+        ROS_INFO("Manual Mode");
     }
     if (emergency_brake == OFF){
-        car.steering    = a_scale_*joy->axes[angular_];
+        car.steering = a_scale_*joy->axes[angular_];
         car.throttle = l_scale_*joy->axes[linear_];
     }
 
@@ -128,6 +127,5 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "jetson_teleop");
     JoyStick jetson_teleop;
     ROS_INFO("Jetson Joystick Node activated");
-    //std::cout << "Jetson Joystick Node activated" << std::endl;
     ros::spin();
 }
