@@ -7,17 +7,9 @@ Use X button on joystick to stop
 """
 from __future__ import print_function
 
-#  import keras
-#  import tensorflow as tf
-#  from keras.models import model_from_json
-#  from keras import backend as K
-
-#  import numpy as np
-#  import cv2
 import threading
-#  import time
 
-#  import roslib
+import numpy as np
 import rospy
 from cv_bridge import CvBridge
 
@@ -65,6 +57,7 @@ class Pilot:
         if self.lock.acquire(True):
             # get image
             self.image = cv_bridge.imgmsg_to_cv2(camera)
+            self.image = np.asarray(self.image, dtype=np.float32)
             # TODO: maybe do event processing here
             steering, _ = self.predict(self.model, self.image)
             self.completed_cycle = True

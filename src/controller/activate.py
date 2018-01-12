@@ -2,6 +2,7 @@
 """Create Pilot Model."""
 import os
 import rospy
+import numpy as np
 from keras.models import model_from_json
 from Pilot import Pilot
 
@@ -26,7 +27,7 @@ def drive(model, image):
     # TODO: preprocess image to send to file or preprocess in higher level
 
     # predict output
-    prediction = model.predict(image[None, :, :, None], batch_size=1)
+    prediction = model.predict(image[np.newaxis, :, :, np.newaxis])
     steering_angle = prediction[0][0]
     throttle = 0.1
 
