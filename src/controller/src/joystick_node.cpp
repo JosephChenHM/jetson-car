@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <ros/ros.h>
 #include <sensor_msgs/Joy.h>      // Joy msg for Jetson JoyStick to subscribe signals from joystick.
-#include <rc_car_msgs/CarController.h> // Tesing simpler message
 #include <rally_msgs/Pwm.h>
 
 
