@@ -5,10 +5,12 @@ from keras.layers import Conv2D
 from keras.layers import merge
 from keras.layers import Input, Convolution2D, Dense, Dropout, Flatten, Lambda
 
-from keras.layers import Cropping2D, SpatialDropout2D
+from keras.layers import Cropping2D, SpatialDropout2D, MaxPooling2D
 
 from keras.layers import TimeDistributed, GRU, Embedding
 from keras.models import Model, Sequential
+from keras.backend import tf as ktf
+
 from keras.objectives import mean_squared_error
 from FLAGS import *
 import numpy as np
@@ -25,6 +27,8 @@ class DatNet(object):
                                         layer1_params=layer1_params, res_layer_params=res_layer_params,
                                         init=init, reg=reg, use_shortcuts=use_shortcuts)
         self.nvidia_model = self.build_nvidia(input_shape=input_shape)
+
+        self.lenet_model = self.build_lenet(input_shape=input_shape)
         # self.RNN  = self.build_rnn()
 
     def train_rnn(self, batch_generator=None, epochs=2, augmentation_scale=3):
@@ -239,8 +243,30 @@ class DatNet(object):
         #model.compile(optimizer=Adam(lr=0.0001), loss='mse')
         return model
 
+    def build_lenet(self, input_shape=(HEIGHT, WIDTH, CHANNELS),crop=30):
+        #x = Lambda(lambda image: ktf.image.resize_images(image, (48, 64)))(x)
+        #x = tf.image.resize_images(x, (48, 64))
+        #x = Input(shape=(x.shape[1], x.shape[2], x.shape[3]))
+        #x = Lambda(lambda x: x/255-0.5)(x)
+        model = Sequential()
+        model.add(Lambda(lambda x: x/255-0.5, input_shape=input_shape))
+        model.add(Lambda(lambda image: ktf.image.resize_images(image, (48, 64))))
+        model.add(Cropping2D(cropping=((crop,0),(0,0))))
+        model.add(Conv2D(32, kernel_size=(3, 3),
+                     activation='relu'))
+        model.add(Conv2D(64, (3, 3), activation='relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        model.add(Dropout(0.25))
+        model.add(Flatten())
+        model.add(Dense(128, activation='relu'))
+        model.add(Dropout(0.5))
+        model.add(Dense(1))
+
+        return model
+
 
 def mse_steer_angle(y_true, y_pred):
     return mean_squared_error(y_true[0], y_pred[0])
 
 dat = DatNet()
+
