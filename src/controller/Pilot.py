@@ -37,8 +37,6 @@ class Pilot:
         # Load Keras Model - Publish topic - CarController
         rospy.init_node("pilot_steering_model", anonymous=True)
         # load keras model from start
-        if self.model is None:
-            self.model = self.get_model()
         self.joy = rospy.Subscriber('joy', Joy, self.joy_callback)
         self.control_signal = rospy.Publisher('/drive_pwm', Pwm, queue_size=1)
         self.camera = rospy.Subscriber(
@@ -58,6 +56,8 @@ class Pilot:
             # get image
             self.image = cv_bridge.imgmsg_to_cv2(camera)
             self.image = np.asarray(self.image, dtype=np.float32)
+            if self.model is None:
+                self.model = self.get_model()
             # TODO: maybe do event processing here
             steering, _ = self.predict(self.model, self.image)
             self.completed_cycle = True
