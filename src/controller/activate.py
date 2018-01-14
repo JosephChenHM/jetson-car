@@ -4,6 +4,7 @@ import os
 import rospy
 import numpy as np
 from keras.models import model_from_json
+from keras.backend import tf as ktf
 from Pilot import Pilot
 
 
@@ -47,7 +48,7 @@ def load_model(model_path):
     """
     with open(model_path, 'r') as json_file:
         json_model = json_file.read()
-        model = model_from_json(json_model)
+        model = model_from_json(json_model, custom_objects={"ktf": ktf})
     print('Pilot model is loaded...')
     model.compile("adam", "mse")
 
