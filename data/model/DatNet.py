@@ -29,6 +29,8 @@ class DatNet(object):
         self.nvidia_model = self.build_nvidia(input_shape=input_shape)
 
         self.lenet_model = self.build_lenet(input_shape=input_shape)
+
+        self.commaai_model = self.build_commaai(input_shape=input_shape)
         # self.RNN  = self.build_rnn()
 
     def train_rnn(self, batch_generator=None, epochs=2, augmentation_scale=3):
@@ -253,6 +255,7 @@ class DatNet(object):
         model = Sequential()
         model.add(Lambda(lambda x: x/255-0.5, input_shape=input_shape))
         model.add(Lambda(lambda image: ktf.image.resize_images(image, (48, 64))))
+
         model.add(Cropping2D(cropping=((crop,0),(0,0))))
         model.add(Conv2D(32, kernel_size=(3, 3),
                      activation='relu'))
@@ -263,6 +266,27 @@ class DatNet(object):
         model.add(Dense(128, activation='relu'))
         model.add(Dropout(0.5))
         model.add(Dense(1))
+
+        return model
+
+    def build_commaai(self, input_shape=(HEIGHT, WIDTH, CHANNELS)):
+        model = Sequential()
+        model.add(Lambda(lambda x: x/255 - 0.5,
+            input_shape=input_shape))
+        model.add(Conv2D(16, 8, 8, subsample=(4, 4), border_mode="same"))
+        model.add(ELU())
+        model.add(Conv2D(32, 5, 5, subsample=(2, 2), border_mode="same"))
+        model.add(ELU())
+        model.add(Conv2D(64, 5, 5, subsample=(2, 2), border_mode="same"))
+        model.add(Flatten())
+        model.add(Dropout(.2))
+        model.add(ELU())
+        model.add(Dense(512))
+        model.add(Dropout(.5))
+        model.add(ELU())
+        model.add(Dense(1))
+
+        model.compile(optimizer="adam", loss="mse")
 
         return model
 
