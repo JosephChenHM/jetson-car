@@ -100,7 +100,7 @@ def img_preproc(aps_image, dvs_image, config=None):
         else None
 
     if mode == 2:
-        return np.stack((dvs_image, aps_image), axis=-1)
+        return np.stack((dvs_image, aps_image), axis=-1)[np.newaxis, ...]
     elif mode == 0:
         return dvs_image
     elif mode == 1:
@@ -119,6 +119,7 @@ if __name__ == "__main__":
     img_config["target_size"] = tuple(rospy.get_param("target_size"))
     img_config["clip_value"] = rospy.get_param("clip_value")
     img_config["mode"] = rospy.get_param("mode")
+    print (img_config)
     pilot = Pilot(lambda: load_model(model_path), drive,
                   img_preproc, img_config=img_config)
     rospy.spin()

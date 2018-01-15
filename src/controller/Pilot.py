@@ -13,6 +13,7 @@ import numpy as np
 import rospy
 import message_filters
 from cv_bridge import CvBridge
+import cv2
 
 from sensor_msgs.msg import Joy, Image
 from rally_msgs.msg import Pwm
@@ -59,12 +60,6 @@ class Pilot:
             [self.camera, self.events], queue_size=1, slop=0.1)
         self.ts.registerCallback(self.callback)
 
-        #  self.camera = rospy.Subscriber(
-        #      '/dvs/image_raw', Image, self.callback, queue_size=1)
-        # TODO: subscribe DVS event
-        #  self.events = rospy.Subscriber(
-        #      "/dvs/events", EventArray, self.callback, queue_size=1)
-
         # Lock which waiting for Keras model to make prediction
         rospy.Timer(rospy.Duration(0.005), self.send_control)
 
@@ -72,14 +67,14 @@ class Pilot:
         global throttle
         throttle = joy.axes[3]  # Let user can manual throttle
 
-    def callback(self, camera_info):
+    def callback(self, camera_img, event_list):
         global steering, throttle
         if self.lock.acquire(True):
             # get aps image
-            self.image = cv_bridge.imgmsg_to_cv2(camera_info[0])
+            self.image = cv_bridge.imgmsg_to_cv2(camera_img)
             self.image = np.asarray(self.image, dtype=np.float32)
             # form dvs image
-            event_list = camera_info[1]
+            event_list = event_list.events
             event_pol = np.array([x.polarity for x in event_list],
                                  dtype=np.bool)
             event_loc = np.array([[x.x, x.y] for x in event_list],
@@ -107,6 +102,7 @@ class Pilot:
                                       config=self.img_config)
 
             steering, _ = self.predict(self.model, input_img)
+            print (steering*500+1500)
             self.completed_cycle = True
             self.lock.release()
 

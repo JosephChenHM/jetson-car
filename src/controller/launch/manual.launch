@@ -1,7 +1,7 @@
 <launch>
 
  <!-- Set Parameter Sever -->
- <rosparam  file="$(find controller)/cfg/paths.yaml" command="load"/>
+ <rosparam  file="$(find controller)/cfg/param_server.yaml" command="load"/>
 
   <!-- camera driver -->
   <node name="davis_ros_driver" pkg="davis_ros_driver" type="davis_ros_driver" />

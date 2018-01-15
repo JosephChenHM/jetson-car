@@ -1,3 +1,7 @@
 <launch>
-        <node pkg="controller" type="activate.py" name="autopilot" output="screen"/>
+
+     <!-- Set Parameter Sever -->
+     <rosparam  file="$(find controller)/cfg/param_server.yaml" command="load"/>
+
+     <node pkg="controller" type="activate.py" name="autopilot" output="screen"/>
 </launch>
