@@ -3,7 +3,7 @@ from keras.layers import AveragePooling2D
 from keras.regularizers import l2
 from keras.layers import Conv2D
 from keras.layers import merge
-from keras.layers import Input, Convolution2D, Dense, Dropout, Flatten, Lambda
+from keras.layers import Input, Convolution2D, Dense, Dropout, Flatten, Lambda, ELU
 
 from keras.layers import Cropping2D, SpatialDropout2D, MaxPooling2D
 
