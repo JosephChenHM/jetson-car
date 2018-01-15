@@ -217,12 +217,12 @@ class DatNet(object):
         # Cropping image for focus only on the road
         model.add(Cropping2D(cropping=((crop,0),(0,0))))
         # Conv 1 layer
-        model.add(Convolution2D(24, (5, 5), border_mode="same", subsample=(2,2), activation="relu"))
+        model.add(Convolution2D(24, (5, 5), border_mode="same", subsample=(1,1), activation="relu"))
         # Conv 2 layer
-        model.add(Convolution2D(36, (5, 5), border_mode="same", subsample=(2,2), activation="relu"))
+        model.add(Convolution2D(36, (5, 5), border_mode="same", subsample=(1,1), activation="relu"))
         model.add(SpatialDropout2D(0.2))
         # Conv 3 layer
-        model.add(Convolution2D(48, (5, 5), border_mode="valid", subsample=(2,2), activation="relu"))
+        model.add(Convolution2D(48, (5, 5), border_mode="valid", subsample=(1,1), activation="relu"))
         model.add(SpatialDropout2D(0.2))
         # Conv 4 layer
         model.add(Convolution2D(64, (3, 3), border_mode="valid", activation="relu"))
