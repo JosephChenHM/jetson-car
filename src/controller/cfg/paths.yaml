@@ -1,5 +1,5 @@
 # PATHS ARE USED in each nodes, will be used via launch file under `rosparam load iyaml_file`
-model_path: "cnn_m_nv_py2_cw_le.json",
+model_path: "resnet_model_small_test_exp-26-0.02-exported.json",
 frame_cut: [[40, 20], [0, 1]],
 img_shape: [240, 180],
 target_size: [64, 32],
