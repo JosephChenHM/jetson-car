@@ -28,19 +28,21 @@ print("Building Pilot Model...")
 class Pilot:
     # Activate autonomous mode in Jetson Car
     def __init__(self, get_model_call_back, model_callback,
-                 img_shape=(240, 180), clip_value=8, mode=2):
+                 img_proc_callback, img_config=None):
         self.image = None
         self.model = None
         self.event_img = None
         self.get_model = get_model_call_back
         self.predict = model_callback
+        self.img_proc = img_proc_callback
         self.completed_cycle = False
         self.start = 0.
         self.lock = threading.RLock()
-        self.img_shape = img_shape
-        self.histrange = [(0, v) for v in img_shape]
-        self.clip_value = clip_value
-        self.mode = mode
+        # img_config contains info for custom processing for model
+        self.img_config = img_config
+        self.img_shape = img_config["img_shape"]
+        self.histrange = [(0, v) for v in self.img_shape]
+        self.clip_value = img_config["clip_value"]
 
         # Load Keras Model - Publish topic - CarController
         rospy.init_node("pilot_steering_model", anonymous=True)
@@ -100,9 +102,9 @@ class Pilot:
 
             if self.model is None:
                 self.model = self.get_model()
-            # TODO: do custom image processing here
+            # do custom image processing here
             input_img = self.img_proc(self.image, self.event_img,
-                                      mode=self.mode)
+                                      config=self.img_config)
 
             steering, _ = self.predict(self.model, input_img)
             self.completed_cycle = True
