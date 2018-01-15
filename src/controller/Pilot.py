@@ -13,7 +13,6 @@ import numpy as np
 import rospy
 import message_filters
 from cv_bridge import CvBridge
-import cv2
 
 from sensor_msgs.msg import Joy, Image
 from rally_msgs.msg import Pwm
