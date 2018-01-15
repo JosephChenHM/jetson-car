@@ -206,12 +206,14 @@ class DatNet(object):
 
         return model
 
-    def build_nvidia(self,input_shape=(HEIGHT, WIDTH, CHANNELS),crop=30):
+    def build_nvidia(self,input_shape=(HEIGHT, WIDTH, CHANNELS),crop=8):
 
         model = Sequential()
         #model.add(img_input)
         # Normalize input planes
         model.add(Lambda(lambda x: x/255-0.5, input_shape=input_shape))
+        # Resize image
+        model.add(Lambda(lambda image: ktf.image.resize_images(image, (48, 64))))
         # Cropping image for focus only on the road
         model.add(Cropping2D(cropping=((crop,0),(0,0))))
         # Conv 1 layer
