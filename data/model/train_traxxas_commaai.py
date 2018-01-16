@@ -109,3 +109,9 @@ model.commaai_model.save_weights('./commaai_cw.h5')
 print('Model saved')
 # # Post-process angle
 
+predy_ = np.array(None)
+predy_ = model.predict(X_test)
+plt.figure(figsize=(20,12))
+plt.plot(predy_*500+1500)
+plt.plot(Y_test*500+1500)
+plt.savefig('commaai_cw.png')
