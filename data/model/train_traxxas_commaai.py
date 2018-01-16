@@ -11,7 +11,7 @@ from keras.models import model_from_json
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 import matplotlib.pyplot as plt
 plt.interactive(False)
-
+plt.switch_backend('agg')
 # Import data
 # ########## FILE READER ##############
 # #####################################
