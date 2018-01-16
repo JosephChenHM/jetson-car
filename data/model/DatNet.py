@@ -3,7 +3,7 @@ from keras.layers import AveragePooling2D
 from keras.regularizers import l2
 from keras.layers import Conv2D
 from keras.layers import merge
-from keras.layers import Input, Convolution2D, Dense, Dropout, Flatten, Lambda
+from keras.layers import Input, Convolution2D, Dense, Dropout, Flatten, Lambda, ELU
 
 from keras.layers import Cropping2D, SpatialDropout2D, MaxPooling2D
 
@@ -29,6 +29,8 @@ class DatNet(object):
         self.nvidia_model = self.build_nvidia(input_shape=input_shape)
 
         self.lenet_model = self.build_lenet(input_shape=input_shape)
+
+        self.commaai_model = self.build_commaai(input_shape=input_shape)
         # self.RNN  = self.build_rnn()
 
     def train_rnn(self, batch_generator=None, epochs=2, augmentation_scale=3):
@@ -206,21 +208,23 @@ class DatNet(object):
 
         return model
 
-    def build_nvidia(self,input_shape=(HEIGHT, WIDTH, CHANNELS),crop=30):
+    def build_nvidia(self,input_shape=(HEIGHT, WIDTH, CHANNELS),crop=8):
 
         model = Sequential()
         #model.add(img_input)
         # Normalize input planes
         model.add(Lambda(lambda x: x/255-0.5, input_shape=input_shape))
+        # Resize image
+        model.add(Lambda(lambda image: ktf.image.resize_images(image, (48, 64))))
         # Cropping image for focus only on the road
         model.add(Cropping2D(cropping=((crop,0),(0,0))))
         # Conv 1 layer
-        model.add(Convolution2D(24, (5, 5), border_mode="same", subsample=(2,2), activation="relu"))
+        model.add(Convolution2D(24, (5, 5), border_mode="same", subsample=(1,1), activation="relu"))
         # Conv 2 layer
-        model.add(Convolution2D(36, (5, 5), border_mode="same", subsample=(2,2), activation="relu"))
+        model.add(Convolution2D(36, (5, 5), border_mode="same", subsample=(1,1), activation="relu"))
         model.add(SpatialDropout2D(0.2))
         # Conv 3 layer
-        model.add(Convolution2D(48, (5, 5), border_mode="valid", subsample=(2,2), activation="relu"))
+        model.add(Convolution2D(48, (5, 5), border_mode="valid", subsample=(1,1), activation="relu"))
         model.add(SpatialDropout2D(0.2))
         # Conv 4 layer
         model.add(Convolution2D(64, (3, 3), border_mode="valid", activation="relu"))
@@ -251,6 +255,7 @@ class DatNet(object):
         model = Sequential()
         model.add(Lambda(lambda x: x/255-0.5, input_shape=input_shape))
         model.add(Lambda(lambda image: ktf.image.resize_images(image, (48, 64))))
+
         model.add(Cropping2D(cropping=((crop,0),(0,0))))
         model.add(Conv2D(32, kernel_size=(3, 3),
                      activation='relu'))
@@ -261,6 +266,27 @@ class DatNet(object):
         model.add(Dense(128, activation='relu'))
         model.add(Dropout(0.5))
         model.add(Dense(1))
+
+        return model
+
+    def build_commaai(self, input_shape=(HEIGHT, WIDTH, CHANNELS)):
+        model = Sequential()
+        model.add(Lambda(lambda x: x/255 - 0.5,
+            input_shape=input_shape))
+        model.add(Conv2D(16, 8, 8, subsample=(4, 4), border_mode="same"))
+        model.add(ELU())
+        model.add(Conv2D(32, 5, 5, subsample=(2, 2), border_mode="same"))
+        model.add(ELU())
+        model.add(Conv2D(64, 5, 5, subsample=(2, 2), border_mode="same"))
+        model.add(Flatten())
+        model.add(Dropout(.2))
+        model.add(ELU())
+        model.add(Dense(512))
+        model.add(Dropout(.5))
+        model.add(ELU())
+        model.add(Dense(1))
+
+        model.compile(optimizer="adam", loss="mse")
 
         return model
 
