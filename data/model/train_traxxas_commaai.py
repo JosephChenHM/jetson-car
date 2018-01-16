@@ -27,7 +27,7 @@ DATA_PATH = os.path.join(os.environ["HOME"],"share", "dataset")
 train_path = os.path.join(DATA_PATH, "ccw_foyer_record_12_12_17-smooth.h5")
 train2_path = os.path.join(DATA_PATH, "cw_foyer_record_12_12_17-smooth.h5")
 
-test_path = os.path.join(DATA_PATH, "cw_foyer_record_12_12_17_test-smooth.h5")
+test_path = os.path.join(DATA_PATH, "ccw_foyer_record_12_12_17_test-smooth.h5")
 test2_path = os.path.join(DATA_PATH, "cw_foyer_record_12_12_17_test-smooth.h5")
 
 train_ds = h5py.File(train_path, "r")
