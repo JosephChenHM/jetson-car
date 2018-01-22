@@ -91,7 +91,7 @@ def img_preproc(in_image, config=None):
 
     # cut useless content
     in_image = in_image[frame_cut[0][0]:-frame_cut[0][1],
-                        frame_cut[1][0]:-frame_cut[1][1], :] \
+                        frame_cut[1][0]:-frame_cut[1][1], :]
 
     # re-normalize image
     if mode in [0, 1]:
