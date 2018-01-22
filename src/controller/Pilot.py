@@ -69,7 +69,7 @@ class Pilot:
         global steering, throttle
         if self.lock.acquire(True):
             # get aps image
-            self.image = cv_bridge.imgmsg_to_cv2(camera_info[0])[..., :2] \
+            self.image = cv_bridge.imgmsg_to_cv2(camera_info)[..., :2] \
                 if self.mode == 2 else self.image
             self.image = np.asarray(self.image, dtype=np.float32)
 
@@ -77,7 +77,7 @@ class Pilot:
                 self.model = self.get_model()
             # do custom image processing here
             input_img = self.img_proc(self.image,
-                                      mode=self.mode)
+                                      config=self.img_config)
 
             steering, _ = self.predict(self.model, input_img)
             self.completed_cycle = True

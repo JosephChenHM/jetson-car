@@ -29,7 +29,7 @@ def drive(model, image):
     # TODO: preprocess image to send to file or preprocess in higher level
 
     # predict output
-    prediction = model.predict(image[np.newaxis, :, :, np.newaxis])
+    prediction = model.predict(image)
     steering_angle = prediction[0][0]
     throttle = 0.1
 
@@ -120,6 +120,7 @@ if __name__ == "__main__":
     img_config["target_size"] = tuple(rospy.get_param("target_size"))
     img_config["clip_value"] = rospy.get_param("clip_value")
     img_config["mode"] = rospy.get_param("mode")
+    print (img_config)
     pilot = Pilot(lambda: load_model(model_path), drive,
                   img_preproc, img_config=img_config)
     rospy.spin()
