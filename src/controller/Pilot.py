@@ -75,6 +75,9 @@ class Pilot:
 
             if self.model is None:
                 self.model = self.get_model()
+                # give up this message while loading for first time
+                steering = 0.
+                return
             # do custom image processing here
             input_img = self.img_proc(self.image,
                                       config=self.img_config)
