@@ -69,8 +69,9 @@ class Pilot:
         global steering, throttle
         if self.lock.acquire(True):
             # get aps image
-            self.image = cv_bridge.imgmsg_to_cv2(camera_info[0])
-            self.image = np.asarray(self.image[..., :2], dtype=np.float32)
+            self.image = cv_bridge.imgmsg_to_cv2(camera_info[0])[..., :2] \
+                if self.mode == 2 else self.image
+            self.image = np.asarray(self.image, dtype=np.float32)
 
             if self.model is None:
                 self.model = self.get_model()
