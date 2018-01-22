@@ -6,6 +6,14 @@
   <!-- camera driver -->
   <node name="davis_ros_driver" pkg="davis_ros_driver" type="davis_ros_driver" />
 
+  <!-- dvs binder -->
+  <node name="dvs_binder_left" pkg="dvs_binder" type="dvs_binder">
+    <param name="bind_method" value="grayscale"/>
+    <remap from="events" to="/dvs/events" />
+    <remap from="image" to="/dvs/image_raw" />
+    <remap from="dvs_bind" to="dvs_bind" />
+  </node>
+
 
  <!-- Serial Arduino Node -->
   <node pkg="rosserial_python" type="serial_node.py" name="serial_node">
