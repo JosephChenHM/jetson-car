@@ -28,19 +28,21 @@ print("Building Pilot Model...")
 class Pilot:
     # Activate autonomous mode in Jetson Car
     def __init__(self, get_model_call_back, model_callback,
-                 img_shape=(240, 180), clip_value=8, mode=2):
+                 img_proc_callback, img_config=None):
         self.image = None
         self.model = None
         self.event_img = None
         self.get_model = get_model_call_back
         self.predict = model_callback
+        self.img_proc = img_proc_callback
         self.completed_cycle = False
         self.start = 0.
         self.lock = threading.RLock()
-        self.img_shape = img_shape
-        self.histrange = [(0, v) for v in img_shape]
-        self.clip_value = clip_value
-        self.mode = mode
+        self.img_config = img_config
+        self.img_shape = img_config["img_shape"]
+        self.histrange = [(0, v) for v in self.img_shape]
+        self.clip_value = img_config["clip_value"]
+        self.mode = img_config["mode"]
 
         # Load Keras Model - Publish topic - CarController
         rospy.init_node("pilot_steering_model", anonymous=True)
@@ -49,19 +51,12 @@ class Pilot:
         self.control_signal = rospy.Publisher('/drive_pwm', Pwm, queue_size=1)
 
         # subscriber for image and event
-        self.camera = message_filters.Subscriber(
-            "/dvs/image_raw", Image)
-        self.events = message_filters.Subscriber(
-            "/dvs/events", EventArray)
-        self.ts = message_filters.ApproximateTimeSynchronizer(
-            [self.camera, self.events], queue_size=1, slop=0.1)
-        self.ts.registerCallback(self.callback)
-
-        #  self.camera = rospy.Subscriber(
-        #      '/dvs/image_raw', Image, self.callback, queue_size=1)
-        # TODO: subscribe DVS event
-        #  self.events = rospy.Subscriber(
-        #      "/dvs/events", EventArray, self.callback, queue_size=1)
+        if self.mode in [0, 2]:
+            self.camera = rospy.Subscriber(
+                '/dvs_bind', Image, self.callback, queue_size=1)
+        else:
+            self.camera = rospy.Subscriber(
+                '/dvs/image_raw', Image, self.callback, queue_size=1)
 
         # Lock which waiting for Keras model to make prediction
         rospy.Timer(rospy.Duration(0.005), self.send_control)
@@ -75,33 +70,12 @@ class Pilot:
         if self.lock.acquire(True):
             # get aps image
             self.image = cv_bridge.imgmsg_to_cv2(camera_info[0])
-            self.image = np.asarray(self.image, dtype=np.float32)
-            # form dvs image
-            event_list = camera_info[1]
-            event_pol = np.array([x.polarity for x in event_list],
-                                 dtype=np.bool)
-            event_loc = np.array([[x.x, x.y] for x in event_list],
-                                 dtype=np.uint16)
-
-            pol_on = (event_pol[:] == 1)
-            pol_off = np.logical_not(pol_on)
-            img_on, _, _ = np.histogram2d(
-                    event_loc[pol_on, 1], event_loc[pol_on, 0],
-                    bins=self.img_shape, range=self.histrange)
-            img_off, _, _ = np.histogram2d(
-                    event_loc[pol_off, 1], event_loc[pol_off, 0],
-                    bins=self.img_shape, range=self.histrange)
-            if self.clip_value is not None:
-                integrated_img = np.clip(
-                    (img_on-img_off), -self.clip_value, self.clip_value)
-            else:
-                integrated_img = (img_on-img_off)
-            self.event_img = integrated_img+self.clip_value
+            self.image = np.asarray(self.image[..., :2], dtype=np.float32)
 
             if self.model is None:
                 self.model = self.get_model()
-            # TODO: do custom image processing here
-            input_img = self.img_proc(self.image, self.event_img,
+            # do custom image processing here
+            input_img = self.img_proc(self.image,
                                       mode=self.mode)
 
             steering, _ = self.predict(self.model, input_img)
