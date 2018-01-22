@@ -70,7 +70,7 @@ class Pilot:
         if self.lock.acquire(True):
             # get aps image
             self.image = cv_bridge.imgmsg_to_cv2(camera_info)[..., :2] \
-                if self.mode == 2 else self.image
+                if self.mode == 2 else cv_bridge.imgmsg_to_cv2(camera_info)
             self.image = np.asarray(self.image, dtype=np.float32)
 
             if self.model is None:
