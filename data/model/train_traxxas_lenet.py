@@ -11,7 +11,7 @@ from keras.models import model_from_json
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 import matplotlib.pyplot as plt
 plt.interactive(False)
-
+plt.switch_backend('agg')
 # Import data
 # ########## FILE READER ##############
 # #####################################
@@ -23,21 +23,35 @@ DATA_PATH = os.path.join(os.environ["HOME"],"share", "dataset")
 # measurements = data['labels']
 # images_2 = data2['features']
 # measurements_2 = data2['labels']
-
 train_path = os.path.join(DATA_PATH, "ccw_foyer_record_12_12_17-smooth.h5")
-test_path = os.path.join(DATA_PATH, "cw_foyer_record_12_12_17-smooth.h5")
+train2_path = os.path.join(DATA_PATH, "cw_foyer_record_12_12_17-smooth.h5")
+
+test_path = os.path.join(DATA_PATH, "ccw_foyer_record_12_12_17_test-smooth.h5")
+test2_path = os.path.join(DATA_PATH, "cw_foyer_record_12_12_17_test-smooth.h5")
 
 train_ds = h5py.File(train_path, "r")
+train_ds2 = h5py.File(train2_path, "r")
+
+
 test_ds = h5py.File(test_path, "r")
+test_ds2 = h5py.File(test2_path, "r")
 
 train_x = train_ds["video/image"][()].astype("float32")
 train_y = train_ds["command/steering"][()].astype("float32")
+train2_x = train_ds2["video/image"][()].astype("float32")
+train2_y = train_ds2["command/steering"][()].astype("float32")
 
 test_x = test_ds["video/image"][()].astype("float32")
 test_y = test_ds["command/steering"][()].astype("float32")
+test2_x = test_ds2["video/image"][()].astype("float32")
+test2_y = test_ds2["command/steering"][()].astype("float32")
 
-ds_x = np.concatenate((train_x, test_x), axis=0)
-ds_y = np.concatenate((train_y, test_y), axis=0)
+ds_x = np.concatenate((train_x, train2_x), axis=0)
+ds_y = np.concatenate((train_y, train2_y), axis=0)
+
+test_ds_x = np.concatenate((test_x, test2_x), axis=0)
+test_ds_y = np.concatenate((test_y, test2_y), axis=0)
+
 ds_y = ds_y[..., np.newaxis]
 ds_y -= 1500
 ds_y /= 500
@@ -99,13 +113,19 @@ model.lenet_model.compile(optimizer=Adam(lr=0.00002), loss=[mse_steer_angle])
 
 checkpoint = ModelCheckpoint('./checkpoints/weights.{epoch:02d}-{val_loss:.3f}.h5', save_weights_only=True)
 model.lenet_model.fit(images, measurements, batch_size=32, epochs=30, callbacks=[checkpoint],
-                       validation_split=0.3, shuffle=True)
+                       validation_split=0.1, shuffle=True)
 
 # Save model
 json_string = model.lenet_model.to_json()
-with open('cnn_m_nv_py2_cw_le.json', 'w') as outfile:
+with open('lenet_cw.json', 'w') as outfile:
     outfile.write(json_string)
-model.lenet_model.save_weights('./cnn_m_nv_py2_cw_le.h5')
+model.lenet_model.save_weights('./lenet_cw.h5')
 print('Model saved')
 # # Post-process angle
 
+predy_ = np.array(None)
+predy_ = model.lenet_model.predict(test_ds_x)
+plt.figure(figsize=(20,12))
+plt.plot(predy_*500+1500)
+plt.plot(test_ds_y)
+plt.savefig('lenet_cw.png')
